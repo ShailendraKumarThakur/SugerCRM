@@ -24,7 +24,7 @@ namespace SugarCRM.Data.Interface
         {
             var conn = (Connection)connection;
             var wrapper = conn.CallWrapper;
-            object _id;
+            object _id = new object();
 
             Account DevTest1 = new Account();
             DevTest1.Id = "9632ba9a-4aa6-11ef-ac10-068962c7e2c7";
