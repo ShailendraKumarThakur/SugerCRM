@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using System.Runtime.Serialization;
 using static SugarCRM.Constants;
+using static System.Net.Mime.MediaTypeNames;
+using System.Reflection.Metadata;
+using SugarCRM.Data.IPaaSApi.Model;
+using Integration.Abstract.Model;
 
 namespace SugarCRM.Data.Interface
 {
@@ -18,7 +22,7 @@ namespace SugarCRM.Data.Interface
         public RestClient _sugarCRMClient;
         public Connection _SugarCRMConnection;
         public Settings _SugarCRMSettings;
-        //Settings.PersistentData.GetValue("AuthToken");
+
 
         [DataMember]
         private DateTime lastRestRequestCreateDT; // We use this to determine the total time taken for a given request. We log the DT when a rest request is made (the first step of each
@@ -40,10 +44,39 @@ namespace SugarCRM.Data.Interface
             _SugarCRMSettings = (Settings)settings;
             _SugarCRMConnection = (Connection)connection;
 
-            _sugarCRMClient = new RestClient(_SugarCRMSettings.Url);
-            _sugarCRMClient.AddDefaultHeader("Content-Type", "application/json");
-            _sugarCRMClient.AddDefaultHeader("Accept", "application/json");
-            _sugarCRMClient.UseSerializer(() => new Utilities.RestSharpNewtonsoftSerializer());
+            //_sugarCRMClient = new RestClient();
+            //_sugarCRMClient.AddDefaultHeader();
+            //_sugarCRMClient.AddDefaultHeader();
+            //_sugarCRMClient.AddDefaultHeader();
+            //var restResponse = await _sugarCRMClient.Execute();
+
+
+            //_sugarCRMClient.UseSerializer(() => new Utilities.RestSharpNewtonsoftSerializer());
+
+            //TokenResponse
+
+            try
+            {
+                PersistentData persistentDataAuthToken = _SugarCRMSettings.PersistentData.GetValue("AuthToken");
+                PersistentData persistentDataRefreshToken = _SugarCRMSettings.PersistentData.GetValue("RefreshToken");
+
+                if (persistentDataAuthToken == null || (persistentDataRefreshToken != null && persistentDataRefreshToken.ExpirationDateTime <= DateTime.Now))
+                {
+                    GetToken(_SugarCRMSettings);
+                }
+
+                if (persistentDataRefreshToken != null && persistentDataAuthToken.ExpirationDateTime <= DateTime.Now)
+                {
+                    RefreshToken(_SugarCRMSettings);
+                }
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+
+           
 
             string ValidationResponse = await ValidateConnection();
 
@@ -56,6 +89,52 @@ namespace SugarCRM.Data.Interface
             {
                 _connected = true;
             }
+        }
+
+        public bool GetToken(Settings _SugarCRMSettings)
+        {
+            string baseURL = string.Format("https://{0}/oauth2", _SugarCRMSettings.Url);
+            _sugarCRMClient = new RestClient(baseURL);
+
+            RestRequest refreshTokenRequest = new RestRequest(string.Format("/token?grant_type=password&client_id=sugar&username={0}&password={1}&platform=base&Content-Type=application/json", _SugarCRMSettings.APIUser, _SugarCRMSettings.APIPassword), Method.Post);
+            refreshTokenRequest.AddHeader("Content-Type", "application/json");
+            refreshTokenRequest.AddHeader("Cache-Control", "no-cache");
+            refreshTokenRequest.AddHeader("Accept", "application/json");
+            RestResponse resp = (RestSharp.RestResponse)_sugarCRMClient.Execute(refreshTokenRequest);
+            if (resp.StatusCode != System.Net.HttpStatusCode.OK || resp.Content == null)
+            {
+                Console.WriteLine("Refresh Token could not be obtained, process terminating");
+                return false;
+            }
+
+            Token token = (Token)JsonConvert.DeserializeObject(resp.Content, typeof(Token));
+
+            _SugarCRMSettings.PersistentData.SaveValue("AuthToken", token.access_token, DateTime.Now.AddSeconds(token.expires_in));
+            _SugarCRMSettings.PersistentData.SaveValue("RefreshToken", token.refresh_token, DateTime.Now.AddSeconds(token.refresh_expires_in));
+            return true;
+        }
+
+        public bool RefreshToken(Settings _SugarCRMSettings)
+        {
+            string baseURL = string.Format("https://{0}/oauth2", _SugarCRMSettings.Url);
+            _sugarCRMClient = new RestClient(baseURL);
+
+            RestRequest refreshTokenRequest = new RestRequest(string.Format("/token?grant_type=refresh_token&client_id=sugar&platform=base&Content-Type=application/json&refresh_token={0}", _SugarCRMSettings.PersistentData.GetValue("RefreshToken")), Method.Post);
+            refreshTokenRequest.AddHeader("Content-Type", "application/json");
+            refreshTokenRequest.AddHeader("Cache-Control", "no-cache");
+            refreshTokenRequest.AddHeader("Accept", "application/json");
+            RestResponse resp = (RestSharp.RestResponse)_sugarCRMClient.Execute(refreshTokenRequest);
+            if (resp.StatusCode != System.Net.HttpStatusCode.OK || resp.Content == null)
+            {
+                Console.WriteLine("Refresh Token could not be obtained, process terminating");
+                return false;
+            }
+
+            Token token = (Token)JsonConvert.DeserializeObject(resp.Content, typeof(Token));
+
+            _SugarCRMSettings.PersistentData.SaveValue("AuthToken", token.refresh_token, DateTime.Now.AddSeconds(token.refresh_expires_in));
+            return true;
+
         }
 
         // This is just a short function to simplify the clapback registration calls. Every call from this class will have the same externalsystemid and direction.
@@ -71,8 +150,8 @@ namespace SugarCRM.Data.Interface
         public async Task<string> ValidateConnection()
         {
             //To test connectivity, we just request Helloworld or some lightweight equivalent end-point from the 3rd party API.
-            RestSharp.RestRequest req = new RestSharp.RestRequest("/v1/helloworld", RestSharp.Method.Get);
-            req.AddHeader("Authorization", string.Format("Basic {0}", Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", _SugarCRMSettings.APIUser, _SugarCRMSettings.APIPassword)))));
+            RestSharp.RestRequest req = new RestSharp.RestRequest(string.Format("https://{0}/Accounts", _SugarCRMSettings.Url), RestSharp.Method.Get);
+            req.AddHeader("Authorization", string.Format("Bearer {0}", _SugarCRMSettings.PersistentData.GetValue("AuthToken")));
             RestResponse resp = (RestResponse)await _sugarCRMClient.ExecuteAsync(req);
 
             string ResponseVal = "";

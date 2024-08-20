@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Integration.Abstract.Helpers;
+using Integration.Abstract.Model;
 
 namespace SugarCRM.Data.Interface
 {
@@ -18,8 +20,8 @@ namespace SugarCRM.Data.Interface
         public string APIPassword { get { return this.GetSetting("API Password", required: true); } }
         //public string APIPassword { get { return this.GetSetting("eVm!iI4R07TlDF!MB,NY", required: true); } }
 
-
-
+       //public PersistentDataHandler PersistentDataHandler { get; set; }
+        
         public string IPaaSApi_EmployeeUrl 
         { 
             get 

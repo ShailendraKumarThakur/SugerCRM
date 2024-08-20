@@ -199,8 +199,8 @@ namespace SugarCRM.Data.Models
 
         public override async Task<object> Get(CallWrapper activeCallWrapper, object _id)
         {
-            var apiCall = new APICall(activeCallWrapper, $"/Accounts/" + Convert.ToString(Id), $"Account_GET(id: {Id})",
-                $"LOAD Account ({Id})", typeof(Account), activeCallWrapper?.TrackingGuid,
+            var apiCall = new APICall(activeCallWrapper, $"/Accounts/" + Convert.ToString(_id), $"Account_GET(id: {_id})",
+                $"LOAD Account ({_id})", typeof(Account), activeCallWrapper?.TrackingGuid,
                 Constants.TM_MappingCollectionType.CUSTOMER, RestSharp.Method.Get);
 
             var output = (Account)await apiCall.ProcessRequestAsync();

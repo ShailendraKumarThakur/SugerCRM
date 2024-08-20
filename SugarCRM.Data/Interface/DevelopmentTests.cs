@@ -13,8 +13,9 @@ namespace SugarCRM.Data.Interface
         {
             var conn = (Connection)connection;
             var wrapper = conn.CallWrapper;
+            var connectionResponse = wrapper.EstablishConnection(conn, wrapper._SugarCRMSettings);
             var response = await wrapper.ValidateConnection();
-
+            
             // Test with successful and invalid credentials.
             // Are you handling Error responses correctly?
         }
