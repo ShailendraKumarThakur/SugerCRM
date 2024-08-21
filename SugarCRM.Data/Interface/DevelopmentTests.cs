@@ -32,7 +32,7 @@ namespace SugarCRM.Data.Interface
             // set other properties for DevTest1
             // set your debug breakpoints in here and step through after executing your DevelopmentTest
 
-            var response = await DevTest1.Get(wrapper, _id);
+            var response = await DevTest1.Get(wrapper, DevTest1.Id);
 
             // Check your response status.  Did everything go OK?
         }

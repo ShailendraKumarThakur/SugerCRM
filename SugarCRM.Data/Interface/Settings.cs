@@ -13,7 +13,7 @@ namespace SugarCRM.Data.Interface
     // GetSetting method will collect the Preset value defined in the SugarCRM console or in MetaData.cs\MetaData\GetPresets().
     public class Settings : Integration.Abstract.Settings
     {
-        public string Url { get { return this.GetSetting("API Url", required: true); } }
+        public string Url { get { return this.GetSetting("API URL", required: true); } }
         //public string Url { get { return this.GetSetting("https://sg-driscollpocv2.demo.sugarcrm.com/rest/v11/Accounts/9632ba9a-4aa6-11ef-ac10-068962c7e2c7", required: true); } }
         public string APIUser { get { return this.GetSetting("API User", required: true); } }
         //public string APIUser { get { return this.GetSetting("admin", required: true); } }

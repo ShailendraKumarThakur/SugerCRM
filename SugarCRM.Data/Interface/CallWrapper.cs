@@ -60,12 +60,12 @@ namespace SugarCRM.Data.Interface
                 PersistentData persistentDataAuthToken = _SugarCRMSettings.PersistentData.GetValue("AuthToken");
                 PersistentData persistentDataRefreshToken = _SugarCRMSettings.PersistentData.GetValue("RefreshToken");
 
-                if (persistentDataAuthToken == null || (persistentDataRefreshToken != null && persistentDataRefreshToken.ExpirationDateTime <= DateTime.Now))
+                if (persistentDataAuthToken == null || persistentDataRefreshToken == null || (persistentDataRefreshToken != null && persistentDataRefreshToken.ExpirationDateTime <= DateTime.Now))
                 {
                     GetToken(_SugarCRMSettings);
                 }
-
-                if (persistentDataRefreshToken != null && persistentDataAuthToken.ExpirationDateTime <= DateTime.Now)
+                
+                if (persistentDataAuthToken != null && persistentDataAuthToken?.ExpirationDateTime <= DateTime.Now)
                 {
                     RefreshToken(_SugarCRMSettings);
                 }
@@ -76,7 +76,7 @@ namespace SugarCRM.Data.Interface
                 throw ex;
             }
 
-           
+
 
             string ValidationResponse = await ValidateConnection();
 
@@ -132,7 +132,8 @@ namespace SugarCRM.Data.Interface
 
             Token token = (Token)JsonConvert.DeserializeObject(resp.Content, typeof(Token));
 
-            _SugarCRMSettings.PersistentData.SaveValue("AuthToken", token.refresh_token, DateTime.Now.AddSeconds(token.refresh_expires_in));
+            _SugarCRMSettings.PersistentData.SaveValue("AuthToken", token.access_token, DateTime.Now.AddSeconds(token.expires_in));
+            _SugarCRMSettings.PersistentData.SaveValue("RefreshToken", token.refresh_token, DateTime.Now.AddSeconds(token.refresh_expires_in));
             return true;
 
         }
@@ -148,10 +149,10 @@ namespace SugarCRM.Data.Interface
         }
 
         public async Task<string> ValidateConnection()
-        {
+        {            
             //To test connectivity, we just request Helloworld or some lightweight equivalent end-point from the 3rd party API.
-            RestSharp.RestRequest req = new RestSharp.RestRequest(string.Format("https://{0}/Accounts", _SugarCRMSettings.Url), RestSharp.Method.Get);
-            req.AddHeader("Authorization", string.Format("Bearer {0}", _SugarCRMSettings.PersistentData.GetValue("AuthToken")));
+            RestSharp.RestRequest req = new RestSharp.RestRequest(string.Format("https://{0}/Accounts", _SugarCRMSettings.Url), Method.Get);
+            req.AddHeader("Authorization", string.Format("Bearer {0}", _SugarCRMSettings.PersistentData.GetValue("AuthToken").Value));
             RestResponse resp = (RestResponse)await _sugarCRMClient.ExecuteAsync(req);
 
             string ResponseVal = "";
