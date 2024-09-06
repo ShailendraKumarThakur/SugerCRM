@@ -149,9 +149,11 @@ namespace SugarCRM.Data.Interface
         }
 
         public async Task<string> ValidateConnection()
-        {            
+        {
+            string baseURL = string.Format("https://{0}", _SugarCRMSettings.Url);
+            _sugarCRMClient = new RestClient(baseURL);
             //To test connectivity, we just request Helloworld or some lightweight equivalent end-point from the 3rd party API.
-            RestSharp.RestRequest req = new RestSharp.RestRequest(string.Format("https://{0}/Accounts", _SugarCRMSettings.Url), Method.Get);
+            RestSharp.RestRequest req = new RestSharp.RestRequest(string.Format("/Accounts", _SugarCRMSettings.Url), Method.Get);
             req.AddHeader("Authorization", string.Format("Bearer {0}", _SugarCRMSettings.PersistentData.GetValue("AuthToken").Value));
             RestResponse resp = (RestResponse)await _sugarCRMClient.ExecuteAsync(req);
 

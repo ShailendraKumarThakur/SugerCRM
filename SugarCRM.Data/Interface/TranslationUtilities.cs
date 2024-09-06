@@ -38,7 +38,7 @@ namespace SugarCRM.Data.Interface
             {
                 return Convert.ToString(((AbstractSugarCRMData)SourceObject).GetPrimaryId());
             }
-            
+
             // If we make it this far and don't have a matching type, we have an error
             throw new Exception(string.Format("Call to GetPrimaryId with unhandled parameters: System={0}, {1}, sourceObject type={2}.  No matching object", Identity.AppName, mappingCollectionType, SourceObject.GetType().Name));
         }
@@ -209,9 +209,9 @@ namespace SugarCRM.Data.Interface
             {
                 // This example demonstrates how to process the CUSTOMER_CATEGORY ToIpaas and assigning the value to the customerGroup field during the CUSTOMER HookEvent.
 
-                //case TM_MappingCollectionType.CUSTOMER:
-                //    retVal.Add(new ChildMapping() { Field = "customerGroup", MappingCollectionType = (int)TM_MappingCollectionType.CUSTOMER_CATEGORY });
-                //    break;
+                case TM_MappingCollectionType.CUSTOMER:
+                    retVal.Add(new ChildMapping() { MappingCollectionType = (int)TM_MappingCollectionType.CUSTOMER_ADDRESS, ParentOnly = true });
+                    break;
                 case TM_MappingCollectionType.TRANSACTION:
                     retVal.Add(new ChildMapping() { Field = "LineItems", MappingCollectionType = (int)TM_MappingCollectionType.TRANSACTION_LINE });
                     retVal.Add(new ChildMapping() { Field = "Payments", MappingCollectionType = (int)TM_MappingCollectionType.TRANSACTION_PAYMENT });
@@ -222,7 +222,7 @@ namespace SugarCRM.Data.Interface
             }
             return retVal;
         }
-        
+
         public override async Task<object> HandlePrerequisite(Integration.Abstract.Connection connection, TransferRequest transferRequest)
         {
             // ===================================================================

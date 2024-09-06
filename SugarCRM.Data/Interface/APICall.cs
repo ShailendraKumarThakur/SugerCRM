@@ -17,6 +17,7 @@ namespace SugarCRM.Data.Interface
 {
     public class APICall
     {
+        public CallWrapper callWrapper;
         public RestClient _sugarCRMClient;
         public Connection Connection;
         private DateTime lastRestRequestCreateDT;   // We use this to determine the total time taken for a given request. We log the DT when a rest request is made (the first step of each
@@ -36,8 +37,8 @@ namespace SugarCRM.Data.Interface
             TM_MappingCollectionType CollectionType = TM_MappingCollectionType.NONE, Method RequestMethod = Method.Get)
         {
             this._sugarCRMClient = wrapper._sugarCRMClient;
-            this.Connection = wrapper._integrationConnection;
-
+            this.Connection = wrapper._SugarCRMConnection;
+            this.callWrapper= wrapper;
             this.URL = URL;
             this.Action = Action;
             this.Action_CustomerFacing = Action_CustomerFacing;
@@ -134,10 +135,11 @@ namespace SugarCRM.Data.Interface
         }
 
         private RestSharp.RestRequest CreateRestRequest(string url)
-        {
+        {     
             RestSharp.RestRequest req = new RestRequest(url, Method.Get);
             req.RequestFormat = DataFormat.Json;
-            req.AddHeader("Authorization", string.Format("Basic {0}", Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", this.Connection.Settings.APIUser, this.Connection.Settings.APIPassword)))));
+            req.AddHeader("Authorization", string.Format("Bearer {0}", this.callWrapper._SugarCRMSettings.PersistentData.GetValue("AuthToken").Value));
+            //req.AddHeader("Authorization", string.Format("Basic {0}", Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", this.Connection.Settings.APIUser, this.Connection.Settings.APIPassword)))));
             lastRestRequestCreateDT = DateTime.Now;
             return req;
         }

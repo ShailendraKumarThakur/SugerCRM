@@ -1,6 +1,7 @@
 ﻿using Integration.Abstract.Helpers;
 using Integration.Abstract.Model;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SugarCRM.Data.Interface;
 using SugarCRM.DataModels;
 using System;
@@ -78,7 +79,7 @@ namespace SugarCRM.Data.Models
         [JsonProperty("ticker_symbol")]
         public string Ticker_Symbol { get; set; }
         [JsonProperty("Shipping_Address_Street")]
-        public string shipping_address_street { get; set; }
+        public string Shipping_Address_Street { get; set; }
         [JsonProperty("shipping_address_street_2")]
         public string Shipping_Address_Street_2 { get; set; }
         [JsonProperty("shipping_address_street_3")]
@@ -153,8 +154,8 @@ namespace SugarCRM.Data.Models
         public Team_Name[] Team_Name { get; set; }
         [JsonProperty("email")]
         public Email[] Email { get; set; }
-        [JsonProperty("")]
-        public string email1 { get; set; }
+        [JsonProperty("email1")]
+        public string Email1 { get; set; }
         [JsonProperty("email2")]
         public string Email2 { get; set; }
         [JsonProperty("invalid_email")]
@@ -177,6 +178,8 @@ namespace SugarCRM.Data.Models
         public string longitude_c { get; set; }
         [JsonProperty("Module")]
         public string _module { get; set; }
+        [JsonProperty("Contacts")]
+        public List<Record> Contacts { get; set; }
 
         public override async Task<object> Create(CallWrapper activeCallWrapper)
         {
@@ -204,6 +207,36 @@ namespace SugarCRM.Data.Models
                 Constants.TM_MappingCollectionType.CUSTOMER, RestSharp.Method.Get);
 
             var output = (Account)await apiCall.ProcessRequestAsync();
+                       
+
+            //Another API call for contact result that need to assign to contact
+            var apiCallContact = new APICall(activeCallWrapper, $"/Contacts/filter", $"Contact_POST(id: {_id})",
+               $"LOAD Contact ({_id})", typeof(Contact), activeCallWrapper?.TrackingGuid,
+               Constants.TM_MappingCollectionType.CUSTOMER_CONTACT, RestSharp.Method.Post);
+
+            dynamic filterWrapper = new JObject();
+            dynamic filterEmbedded = new JObject();
+            //dynamic name = new JObject(); 
+            JObject name = JObject.FromObject(new
+            {
+                account_id = _id
+            });
+
+            filterEmbedded.name = name;
+            JArray filter = new JArray();
+            filter.Add(name);
+            filterWrapper.filter = filter;
+            apiCallContact.AddBodyParameter(filter);
+
+
+            var contactOutput = (Contact)await apiCallContact.ProcessRequestAsync();
+
+            if (output.Contacts == null)
+            {
+                output.Contacts = new List<Record>();
+            }
+
+            output.Contacts.AddRange(contactOutput.records);
             return output;
         }
 
