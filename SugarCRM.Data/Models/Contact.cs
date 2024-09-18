@@ -9,13 +9,13 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace SugarCRM.Data.Models
-{
-    public class Contact
+{   
+    public class FilterResponse
     {
         public int next_offset { get; set; }
-        public Record[] records { get; set; }
+        public List<object> records { get; set; } = new List<object>();
     }
-    public class Record
+    public class Contact
     {
         [JsonProperty("id")]
         public string Id { get; set; }

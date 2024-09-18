@@ -6,6 +6,7 @@ using SugarCRM.Data.Interface;
 using SugarCRM.DataModels;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -179,7 +180,7 @@ namespace SugarCRM.Data.Models
         [JsonProperty("Module")]
         public string _module { get; set; }
         [JsonProperty("Contacts")]
-        public List<Record> Contacts { get; set; }
+        public List<Contact> Contacts { get; set; }
 
         public override async Task<object> Create(CallWrapper activeCallWrapper)
         {
@@ -207,36 +208,45 @@ namespace SugarCRM.Data.Models
                 Constants.TM_MappingCollectionType.CUSTOMER, RestSharp.Method.Get);
 
             var output = (Account)await apiCall.ProcessRequestAsync();
-                       
+
 
             //Another API call for contact result that need to assign to contact
             var apiCallContact = new APICall(activeCallWrapper, $"/Contacts/filter", $"Contact_POST(id: {_id})",
-               $"LOAD Contact ({_id})", typeof(Contact), activeCallWrapper?.TrackingGuid,
+               $"LOAD Contact ({_id})", typeof(FilterResponse), activeCallWrapper?.TrackingGuid,
                Constants.TM_MappingCollectionType.CUSTOMER_CONTACT, RestSharp.Method.Post);
 
+            //dynamic filterWrapper = new JObject();
+            //JObject name = JObject.FromObject(new
+            //{
+            //    account_id = _id
+            //});
+
+            //JArray filter = new JArray();
+            //filter.Add(name);
+            //filterWrapper.filter = filter;
+
             dynamic filterWrapper = new JObject();
-            dynamic filterEmbedded = new JObject();
-            //dynamic name = new JObject(); 
-            JObject name = JObject.FromObject(new
+            JArray filter = new JArray();
+            filter.Add(JObject.FromObject(new
             {
                 account_id = _id
-            });
-
-            filterEmbedded.name = name;
-            JArray filter = new JArray();
-            filter.Add(name);
+            }));
             filterWrapper.filter = filter;
-            apiCallContact.AddBodyParameter(filter);
+
+            apiCallContact.AddBodyParameter(JsonConvert.SerializeObject(filterWrapper));         
 
 
-            var contactOutput = (Contact)await apiCallContact.ProcessRequestAsync();
+            var contactOutput = (FilterResponse)await apiCallContact.ProcessRequestAsync();
 
             if (output.Contacts == null)
             {
-                output.Contacts = new List<Record>();
+                output.Contacts = new List<Contact>();
             }
+            var stringContacts = JsonConvert.SerializeObject(contactOutput.records);
+            var ListContactsOutput = JsonConvert.DeserializeObject<List<Contact>>(stringContacts);
 
-            output.Contacts.AddRange(contactOutput.records);
+            if (ListContactsOutput != null && ListContactsOutput.Count > 0)
+                output.Contacts.AddRange(ListContactsOutput);
             return output;
         }
 
