@@ -33,7 +33,7 @@ namespace SugarCRM.Data.Interface
 
         [DataMember]
         private string _connectionMessage;
-        internal Connection _integrationConnection;
+        //internal Connection _integrationConnection;
 
         public override string ConnectionMessage { get { return _connectionMessage; } }
 

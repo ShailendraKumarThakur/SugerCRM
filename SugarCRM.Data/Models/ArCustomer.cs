@@ -96,7 +96,7 @@ namespace SugarCRM.Data.Models
                $"UPDATE Customer ({Customer})", typeof(ArCustomer), activeCallWrapper?.TrackingGuid,
                Constants.TM_MappingCollectionType.CUSTOMER, RestSharp.Method.Put);
             apiCall.AddBodyParameter(this);
-            activeCallWrapper._integrationConnection.Logger.Log_Technical("D", $"{Identity.AppName} Update.Body", JsonConvert.SerializeObject(this));
+            activeCallWrapper._SugarCRMConnection.Logger.Log_Technical("D", $"{Identity.AppName} Update.Body", JsonConvert.SerializeObject(this));
             var output = (ArCustomer)await apiCall.ProcessRequestAsync();
             return output;
         }

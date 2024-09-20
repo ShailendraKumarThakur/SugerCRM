@@ -179,15 +179,17 @@ namespace SugarCRM.Data.Models
         public string longitude_c { get; set; }
         [JsonProperty("Module")]
         public string _module { get; set; }
-        [JsonProperty("Contacts")]
+
+        [JsonIgnore]
+        //[JsonProperty("Contacts")]
         public List<Contact> Contacts { get; set; }
 
         public override async Task<object> Create(CallWrapper activeCallWrapper)
         {
-            var apiCall = new APICall(activeCallWrapper, $"Accounts", $"Account_POST(Title: {Name})", $"CREATE Account ({Name})", typeof(Account), activeCallWrapper?.TrackingGuid,
+            var apiCall = new APICall(activeCallWrapper, $"/Accounts", $"Account_POST(Title: {Name})", $"CREATE Account ({Name})", typeof(Account), activeCallWrapper?.TrackingGuid,
                 Constants.TM_MappingCollectionType.CUSTOMER, RestSharp.Method.Post);
             apiCall.AddBodyParameter(this);
-            activeCallWrapper._integrationConnection.Logger.Log_Technical("D", $"{Identity.AppName} create.Body", JsonConvert.SerializeObject(this));
+            activeCallWrapper._SugarCRMConnection.Logger.Log_Technical("D", $"{Identity.AppName} create.Body", JsonConvert.SerializeObject(this));
             var output = (Account)await apiCall.ProcessRequestAsync();
             return output;
         }
@@ -314,7 +316,7 @@ namespace SugarCRM.Data.Models
                 $"UPDATE Account ({Id})", typeof(Account), activeCallWrapper?.TrackingGuid,
                 Constants.TM_MappingCollectionType.CUSTOMER, RestSharp.Method.Put);
             apiCall.AddBodyParameter(this);
-            activeCallWrapper._integrationConnection.Logger.Log_Technical("D", $"{Identity.AppName} Update.Body", JsonConvert.SerializeObject(this));
+            activeCallWrapper._SugarCRMConnection.Logger.Log_Technical("D", $"{Identity.AppName} Update.Body", JsonConvert.SerializeObject(this));
             var output = (Account)await apiCall.ProcessRequestAsync();
             return output;
         }

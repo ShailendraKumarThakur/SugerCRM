@@ -37,6 +37,39 @@ namespace SugarCRM.Data.Interface
             // Check your response status.  Did everything go OK?
         }
 
+        public static async Task SugarCRM_Template_FromiPaaS_PostAccount(Integration.Abstract.Connection connection)
+        {
+            // Confirm that an Customer Posted to Clover is successfully received.
+            var conn = (Connection)connection;
+            var wrapper = conn.CallWrapper;
+
+            SugarCRM.Data.Models.Account testAccount = new SugarCRM.Data.Models.Account();
+            testAccount.Name = "Shailendra Thakur";
+            testAccount.Description = "This potential customer is a referral from Union Bank (Shailendra Thakur). changed for testing purposes.";
+            testAccount.Business_Center_Name = "British scientist, theory of evolution";
+            testAccount.Email1 = "peggycupcake@hotmail.com";
+
+            //SugarCRM.Data.Models.Account address1 = new Integration.DataModels.CustomerAddress();
+
+            testAccount.Billing_Address_Street = "422 E 19th Ave";
+            testAccount.Billing_Address_Street_2 = "Street No: 2";
+            testAccount.Billing_Address_Street_3 = "ABC Tower";
+            testAccount.Billing_Address_City = "Philadelphia";
+            testAccount.Billing_Address_State = "Pennsylvania";
+            testAccount.Billing_Address_PostalCode = "19123";
+            testAccount.Billing_Address_Country = "US";
+
+            testAccount.Shipping_Address_Street = "Shipping 422 E 19th Ave";
+            testAccount.Shipping_Address_Street_2 = "Shipping Street No: 2";
+            testAccount.Shipping_Address_Street_3 = "Shipping ABC Tower";
+            testAccount.Shipping_Address_City = "Philadelphia";
+            testAccount.Shipping_Address_State = "Pennsylvania";
+            testAccount.Shipping_Address_PostalCode = "19123";
+            testAccount.Shipping_Address_Country = "US";  
+
+            var tmp = await testAccount.Create(wrapper);
+        }
+
 
         // Example development test running from your DataModel events
         public static async Task SugarCRM_Template_FromiPaaS_Create(Integration .Abstract.Connection connection)
