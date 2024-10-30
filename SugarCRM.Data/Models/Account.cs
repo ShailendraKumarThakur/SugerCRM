@@ -188,9 +188,16 @@ namespace SugarCRM.Data.Models
         {
             var apiCall = new APICall(activeCallWrapper, $"/Accounts", $"Account_POST(Title: {Name})", $"CREATE Account ({Name})", typeof(Account), activeCallWrapper?.TrackingGuid,
                 Constants.TM_MappingCollectionType.CUSTOMER, RestSharp.Method.Post);
-            apiCall.AddBodyParameter(this);
+            apiCall.AddBodyParameter(JsonConvert.SerializeObject(this));
             activeCallWrapper._SugarCRMConnection.Logger.Log_Technical("D", $"{Identity.AppName} create.Body", JsonConvert.SerializeObject(this));
             var output = (Account)await apiCall.ProcessRequestAsync();
+
+            var apiContactCall = new APICall(activeCallWrapper, $"/Accounts/"+ output.Id + "/link/contacts", $"Account_POST(Title: {Name})", $"CREATE CONTACT ({Name})", typeof(Contact), activeCallWrapper?.TrackingGuid,
+               Constants.TM_MappingCollectionType.CUSTOMER_CONTACT, RestSharp.Method.Post);
+            apiContactCall.AddBodyParameter(JsonConvert.SerializeObject(this.Contacts[0]));
+            activeCallWrapper._SugarCRMConnection.Logger.Log_Technical("D", $"{Identity.AppName} create.Body", JsonConvert.SerializeObject(this));
+            var outputContact = (Contact)await apiContactCall.ProcessRequestAsync();
+
             return output;
         }
 
@@ -250,9 +257,19 @@ namespace SugarCRM.Data.Models
             if (ListContactsOutput != null && ListContactsOutput.Count > 0)
                 output.Contacts.AddRange(ListContactsOutput);
             return output;
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         }
-
-        public override object GetPrimaryId()
+public override object GetPrimaryId()
         {
             return Id;
         }
@@ -277,7 +294,7 @@ namespace SugarCRM.Data.Models
         //    //Since FakeStore accounts are stored with an incrementing id, we can determine which accounts have not been previously polled by checkign to see
         //    //if they are higher than the previous highestaccountIdPolled value. 
         //    string highestProductIdPolled = string.Empty;
-        //    var highestProductIdPolledPD = activeCallWrapper._integrationConnection.Settings.PersistentData.GetValue("highestProductIdPolled");
+        //    var highestProductIdPolledPD = activeCallWrapper._SugarCRMConnection.Settings.PersistentData.GetValue("highestProductIdPolled");
 
         //    //If the highestProductIdPolled value from PersistentData exists and is a valid int, that is our starting point. Otherwise, we use the default value of 0
         //    //if (highestProductIdPolledPD != null && int.TryParse(Convert.ToString(highestProductIdPolledPD.Value), out int highestProductIdPolledPDValueInt))

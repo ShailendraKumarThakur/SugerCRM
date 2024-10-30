@@ -13,6 +13,7 @@ using SugarCRM.Data.Utilities;
 using SugarCRM.Data.IPaaSApi;
 using SugarCRM.Data;
 using SugarCRM.Data.Models;
+using System.Xml.Linq;
 
 namespace SugarCRM.Data.Interface
 {
@@ -297,9 +298,45 @@ namespace SugarCRM.Data.Interface
         public override async Task<ResponseObject> UpdateWebhookSubscriptionAsync(Integration.Abstract.Connection connection, string scope, bool subscribed)
         {
             // If External webhooks are supported in this SugarCRM, this is where you handle turning them on
+            // subscribed represents the toggle state
 
             var retVal = new ResponseObject();
+
+            var conn = (Connection)connection;
+            var SugarCRM_wrapper = (CallWrapper)conn.CallWrapper;
+
             retVal.TotalAPICallsMade = 0;
+
+            if (scope == "Account")
+            {
+                // Add Sugar API Call here
+
+                var apiCall = new APICall(SugarCRM_wrapper, $"/WebLogicHooks", $"WebLogicHook_POST(Title: WebLogicHook)", $"CREATE WebLogicHook)", typeof(WebLogicHook), SugarCRM_wrapper?.TrackingGuid,
+              Constants.TM_MappingCollectionType.NONE, RestSharp.Method.Post);
+
+                WebLogicHook objWebLogicHook = new WebLogicHook()
+                {
+                    Name = "Webhook created from Data Integration",
+                    Description = "This is testing purpose from Integration",
+                    Webhook_Target_Module = "Accounts",
+                    Deleted = false,
+                    Request_Method = "POST",
+                    Url = "https://stagingapi.ipaas.com/hookapi/v2/dynamic/SugarCRM/?subscription=" + conn.Settings.WebhookApiKey,
+                    Trigger_Event = "after_save",
+                    _Module = "WebLogicHooks"
+                };
+
+
+                apiCall.AddBodyParameter(JsonConvert.SerializeObject(objWebLogicHook));
+                SugarCRM_wrapper._SugarCRMConnection.Logger.Log_Technical("D", $"{Identity.AppName} create.Body", JsonConvert.SerializeObject(objWebLogicHook));
+                var output = (Account)await apiCall.ProcessRequestAsync();
+
+                //return output;
+
+
+                retVal.TotalAPICallsMade++;
+            }
+
             return retVal;
         }
 

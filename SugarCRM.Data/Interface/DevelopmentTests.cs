@@ -15,7 +15,7 @@ namespace SugarCRM.Data.Interface
             var wrapper = conn.CallWrapper;
             var connectionResponse = wrapper.EstablishConnection(conn, wrapper._SugarCRMSettings);
             var response = await wrapper.ValidateConnection();
-            
+
             // Test with successful and invalid credentials.
             // Are you handling Error responses correctly?
         }
@@ -65,14 +65,37 @@ namespace SugarCRM.Data.Interface
             testAccount.Shipping_Address_City = "Philadelphia";
             testAccount.Shipping_Address_State = "Pennsylvania";
             testAccount.Shipping_Address_PostalCode = "19123";
-            testAccount.Shipping_Address_Country = "US";  
+            testAccount.Shipping_Address_Country = "US";
+
+            if (testAccount.Contacts == null)
+                testAccount.Contacts = new List<Contact>();
+
+            testAccount.Contacts.Add(new Contact()
+            {
+                Name = "Mr. Shailendra Thankur",
+                Description = "Test data from Utility from iPaaS to SugarCRM description",
+                Full_Name = "Mr. Shailendra Kumar",
+                Title = "Marketing Assistant",
+                Phone_Home = "+1-907-411-1995",
+                Phone_Mobile = "+1-242-134-4218",
+                Phone_Work = "+1-851-117-7116",
+                Portal_Name = "ShailendrJoeshTesting" + System.DateTime.Now.ToString(),
+                Portal_Active = true,
+                Preferred_Language = "en_us",
+                Business_Center_Name = "APAC Business Center",
+                Business_Center_Id = "990751e6-8831-11e9-8e6f-069335ab1e28",
+                Email1 = "anna.bishop@hotmail.com",
+                First_Name = "Shailendra",
+                Last_Name = "Thankur",
+                _Module = "Contacts"
+            });
 
             var tmp = await testAccount.Create(wrapper);
         }
 
 
         // Example development test running from your DataModel events
-        public static async Task SugarCRM_Template_FromiPaaS_Create(Integration .Abstract.Connection connection)
+        public static async Task SugarCRM_Template_FromiPaaS_Create(Integration.Abstract.Connection connection)
         {
             var conn = (Connection)connection;
             var wrapper = conn.CallWrapper;
@@ -83,10 +106,21 @@ namespace SugarCRM.Data.Interface
             // set your debug breakpoints in here and step through after executing your DevelopmentTest
 
             var response = await DevTest1.Create(wrapper);
-            
+
             // Check your response status.  Did everything go OK?
         }
 
+        // Example development test running from your DataModel events
+        public static async Task SugarCRM_Template_FromiPaaS_WebHookCreate(Integration.Abstract.Connection connection)
+        {
+            var conn = (Connection)connection;
+            var wrapper = conn.CallWrapper;
+
+            TranslationUtilities DevTest1 = new TranslationUtilities();
+            var output = DevTest1.UpdateWebhookSubscriptionAsync(conn, "Account", true);
+            Console.WriteLine(output);
+            // Check your response status.  Did everything go OK?
+        }
         /*
          * 
         // Example Development Test Structure for Certification

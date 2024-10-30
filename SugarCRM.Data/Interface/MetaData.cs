@@ -34,9 +34,10 @@ namespace SugarCRM.Data.Interface
         {
             Scopes = new List<Scope>();
             //These are some examples of scopes you may want to create
-            Scopes.Add(new Scope() { Name = "giftcard/created", Description = "Gift Card Created", MappingCollectionTypeId = (int)TM_MappingCollectionType.GIFT_CARD, ScopeActionId = (int)ScopeAction.CREATED });
-            Scopes.Add(new Scope() { Name = "customer/category/initialize", Description = "Initialize customer categories", MappingCollectionTypeId = (int)TM_MappingCollectionType.CUSTOMER_CATEGORY, ScopeActionId = (int)ScopeAction.INITIALIZE });
-            Scopes.Add(new Scope() { Name = "product/poll", Description = "Poll the destination system for updated products", MappingCollectionTypeId = (int)TM_MappingCollectionType.PRODUCT, ScopeActionId = (int)ScopeAction.POLL });
+            Scopes.Add(new Scope() { Name = "Account", Description = "Data transfer of account in iPaaS from SugarCRM.", MappingCollectionTypeId = (int)TM_MappingCollectionType.CUSTOMER});
+            //Scopes.Add(new Scope() { Name = "giftcard/created", Description = "Gift Card Created", MappingCollectionTypeId = (int)TM_MappingCollectionType.GIFT_CARD, ScopeActionId = (int)ScopeAction.CREATED });
+            //Scopes.Add(new Scope() { Name = "customer/category/initialize", Description = "Initialize customer categories", MappingCollectionTypeId = (int)TM_MappingCollectionType.CUSTOMER_CATEGORY, ScopeActionId = (int)ScopeAction.INITIALIZE });
+            //Scopes.Add(new Scope() { Name = "product/poll", Description = "Poll the destination system for updated products", MappingCollectionTypeId = (int)TM_MappingCollectionType.PRODUCT, ScopeActionId = (int)ScopeAction.POLL });
             return Scopes;
         }
 

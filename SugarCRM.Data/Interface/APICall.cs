@@ -88,7 +88,10 @@ namespace SugarCRM.Data.Interface
                 }
             }
 
+            Connection.Logger.Log_Technical("E", string.Format("{0} Before POST call CallWrapper.{1}", Identity.AppName, "POST"), JsonConvert.SerializeObject(req));
             var resp = await _sugarCRMClient.ExecuteAsync(req);
+            Connection.Logger.Log_Technical("E", string.Format("{0} POST call CallWrapper.{1}", Identity.AppName, "POST"), JsonConvert.SerializeObject(resp));
+
             IntegrationAPIResponse IntegrationResponse = HandleResponse((RestSharp.RestResponse)resp, Action, Action_CustomerFacing, mappingCollectionType: CollectionType);
             if (IntegrationResponse.action == IntegrationAPIResponse.ResponseAction.Retry)
                 await ProcessRequestAsync();
