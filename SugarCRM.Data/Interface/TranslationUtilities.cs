@@ -310,31 +310,55 @@ namespace SugarCRM.Data.Interface
             if (scope == "Account")
             {
                 // Add Sugar API Call here
-
-                var apiCall = new APICall(SugarCRM_wrapper, $"/WebLogicHooks", $"WebLogicHook_POST(Title: WebLogicHook)", $"CREATE WebLogicHook)", typeof(WebLogicHook), SugarCRM_wrapper?.TrackingGuid,
-              Constants.TM_MappingCollectionType.NONE, RestSharp.Method.Post);
-
-                WebLogicHook objWebLogicHook = new WebLogicHook()
+                if (subscribed)
                 {
-                    Name = "Webhook created from Data Integration",
-                    Description = "This is testing purpose from Integration",
-                    Webhook_Target_Module = "Accounts",
-                    Deleted = false,
-                    Request_Method = "POST",
-                    Url = "https://stagingapi.ipaas.com/hookapi/v2/dynamic/SugarCRM/?subscription=" + conn.Settings.WebhookApiKey,
-                    Trigger_Event = "after_save",
-                    _Module = "WebLogicHooks"
-                };
+                    var apiCall = new APICall(SugarCRM_wrapper, $"/WebLogicHooks", $"WebLogicHook_POST(Title: WebLogicHook)", $"CREATE WebLogicHook)", typeof(WebLogicHook), SugarCRM_wrapper?.TrackingGuid,
+             Constants.TM_MappingCollectionType.NONE, RestSharp.Method.Post);
 
+                    WebLogicHook objWebLogicHook = new WebLogicHook()
+                    {
+                        Name = "Webhook created from Data Integration",
+                        Description = "This is testing purpose from Integration",
+                        Webhook_Target_Module = "Accounts",
+                        Deleted = false,
+                        Request_Method = "POST",
+                        Url = "https://stagingapi.ipaas.com/hookapi/v2/dynamic/SugarCRM/?subscription=" + conn.Settings.WebhookApiKey,
+                        Trigger_Event = "after_save",
+                        Following = false,
+                        My_Favorite = false,
+                        _Module = "WebLogicHooks"
+                    };
 
-                apiCall.AddBodyParameter(JsonConvert.SerializeObject(objWebLogicHook));
-                SugarCRM_wrapper._SugarCRMConnection.Logger.Log_Technical("D", $"{Identity.AppName} create.Body", JsonConvert.SerializeObject(objWebLogicHook));
-                var output = (Account)await apiCall.ProcessRequestAsync();
+                    apiCall.AddBodyParameter(JsonConvert.SerializeObject(objWebLogicHook));
+                    SugarCRM_wrapper._SugarCRMConnection.Logger.Log_Technical("D", $"{Identity.AppName} create.Body", JsonConvert.SerializeObject(objWebLogicHook));
+                    var output = (Account)await apiCall.ProcessRequestAsync();
+                    retVal.TotalAPICallsMade++;
+                }
+                else
+                {
+
+                    var apiCall = new APICall(SugarCRM_wrapper, $"/WebLogicHooks", $"WebLogicHook_GET(Title: WebLogicHook)", $"GET WebLogicHook)", typeof(List<WebLogicHook>), SugarCRM_wrapper?.TrackingGuid,
+          Constants.TM_MappingCollectionType.NONE, RestSharp.Method.Get);                                       
+
+                    var webhookList = (List<WebLogicHook>)await apiCall.ProcessRequestAsync();
+                    retVal.TotalAPICallsMade++;
+
+                    var webhook = webhookList.Find(x => x.Name == "Webhook created from Data Integration");
+                    if (webhook != null)
+                    {
+                        var apiCallWebHook = new APICall(SugarCRM_wrapper, $"/WebLogicHooks" + webhook.Id, $"WebLogicHook_DELETE(Title: WebLogicHook)", $"DELETE WebLogicHook)", typeof(WebLogicHook), SugarCRM_wrapper?.TrackingGuid,
+           Constants.TM_MappingCollectionType.NONE, RestSharp.Method.Delete);
+
+                        //apiCall.AddBodyParameter(JsonConvert.SerializeObject(objWebLogicHook));
+                        var output = (WebLogicHook)await apiCallWebHook.ProcessRequestAsync();
+                        retVal.TotalAPICallsMade++;
+                    }                    
+                }
 
                 //return output;
 
 
-                retVal.TotalAPICallsMade++;
+               
             }
 
             return retVal;
